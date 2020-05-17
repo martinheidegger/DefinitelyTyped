@@ -35,8 +35,9 @@ declare module "events" {
          */
         let captureRejections: boolean;
 
-        interface EventEmitter extends NodeJS.EventEmitter {
-        }
+        type Events = Record<string | symbol, (...args: any[]) => void>;
+    
+        interface EventEmitter<E extends Events = Events> extends NodeJS.EventEmitter<E> {}
 
         class EventEmitter {
             constructor(options?: EventEmitterOptions);
@@ -58,23 +59,23 @@ declare module "events" {
 
     global {
         namespace NodeJS {
-            interface EventEmitter {
-                addListener(event: string | symbol, listener: (...args: any[]) => void): this;
-                on(event: string | symbol, listener: (...args: any[]) => void): this;
-                once(event: string | symbol, listener: (...args: any[]) => void): this;
-                removeListener(event: string | symbol, listener: (...args: any[]) => void): this;
-                off(event: string | symbol, listener: (...args: any[]) => void): this;
-                removeAllListeners(event?: string | symbol): this;
-                setMaxListeners(n: number): this;
+            interface EventEmitter<E extends EventEmitter.Events> {
+                addListener<K extends keyof E>(event: K, listener: E[K]): this;
+                on<K extends keyof E>(event: K, listener: E[K]): this;
+                once<K extends keyof E>(event: K, listener: E[K]): this;
+                removeListener<K extends keyof E>(event: K, listener: E[K]): this;
+                off<K extends keyof E>(event: K, listener: E[K]): this;
+                removeAllListeners<K extends keyof E>(event?: K): this;
+                setMaxListeners(maxListeners: number): this;
                 getMaxListeners(): number;
-                listeners(event: string | symbol): Function[];
-                rawListeners(event: string | symbol): Function[];
-                emit(event: string | symbol, ...args: any[]): boolean;
-                listenerCount(event: string | symbol): number;
+                listeners<K extends keyof E>(event: K): E[K][];
+                rawListeners<K extends keyof E>(event: K): E[K][];
+                emit<K extends keyof E>(event: K, ...args: Parameters<E[K]>): boolean;
+                listenerCount<K extends keyof E>(event: K): number;
                 // Added in Node 6...
-                prependListener(event: string | symbol, listener: (...args: any[]) => void): this;
-                prependOnceListener(event: string | symbol, listener: (...args: any[]) => void): this;
-                eventNames(): Array<string | symbol>;
+                prependListener<K extends keyof E>(event: K, listener: E[K]): this;
+                prependOnceListener<K extends keyof E>(event: K, listener: E[K]): this;
+                eventNames<K extends keyof E>(): K[];
             }
         }
     }
